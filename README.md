@@ -1,4 +1,4 @@
-# deno-plugin-adapter
+# Deno plugin adapter
 Converts Node.js-based projects to Deno projects.
 
 ## Requirements
