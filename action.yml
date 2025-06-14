@@ -1,0 +1,41 @@
+name: "Deno Deploy Plugin Adapter"
+description: "Converts a plugin into a Deno-compatible deployment by creating entry points."
+inputs:
+  pluginEntry:
+    description: "The path to the plugin entry file. It is expected to export 'fetch' as a default."
+    required: false
+    default: "./worker"
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: Create Deno Entry Point
+      shell: bash
+      run: |
+        mkdir -p src
+        cat << 'EOF' > src/deno.ts
+        import worker from "${{ inputs.pluginEntry }}";
+        export default {
+          async fetch(request: Request, env: Record<string, unknown>, executionCtx?: ExecutionContext) {
+            Object.assign(env, Deno.env.toObject());
+            return worker.fetch(request, env, executionCtx);
+          },
+        };
+        EOF
+
+    - name: Fix Import Extensions
+      shell: bash
+      run: |
+        find src -name "*.ts" -type f -exec sh -c '
+          sed -i.bak "
+            s/from \"\(\.\+[^\"]*\)\.json\"/from \"\1.json\" with { type: \"json\" }/g;
+            s/from '"'"'\(\.\+[^'"'"']*\)\.json'"'"'/from '"'"'\1.json'"'"' with { type: \"json\" }/g;
+            s/from \"\(\.\+[^\"]*\)\"/from \"\1.ts\"/g;
+            s/from '"'"'\(\.\+[^'"'"']*\)'"'"'/from '"'"'\1.ts'"'"'/g;
+            s/\.json\.ts\" with { type: \"json\" }/.json\" with { type: \"json\" }/g;
+            s/\.css\.ts/.css/g;
+            s/\.svg\.ts/.svg/g;
+            s/\.ts\.ts/.ts/g
+          " "$1"
+        ' _ {} \;
+        find src -name "*.ts.bak" -delete
