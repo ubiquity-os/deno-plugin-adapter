@@ -5,11 +5,15 @@ inputs:
     description: "The path to the plugin entry file. It is expected to export 'fetch' as a default."
     required: false
     default: "./worker"
-outputs: {}
+outputs:
+  entrypoint:
+    description: "The path to the generated Deno entry point file"
+    value: ${{ steps.create-entry.outputs.entrypoint }}
 runs:
   using: "composite"
   steps:
     - name: Create Deno Entry Point
+      id: create-entry
       shell: bash
       run: |
         mkdir -p src
@@ -22,6 +26,7 @@ runs:
           },
         };
         EOF
+        echo "entrypoint=$(pwd)/src/deno.ts" >> $GITHUB_OUTPUT
 
     - name: Fix Import Extensions
       shell: bash
