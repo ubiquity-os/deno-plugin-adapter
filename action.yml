@@ -33,11 +33,12 @@ runs:
       run: |
         find src -name "*.ts" -type f -exec sh -c '
           sed -i.bak "
-            s/from \"\(\.\+[^\"]*\)\.json\"\([^w]\|$\)/from \"\1.json\" with { type: \"json\" }\2/g;
-            s/from '"'"'\(\.\+[^'"'"']*\)\.json'"'"'\([^w]\|$\)/from '"'"'\1.json'"'"' with { type: \"json\" }\2/g;
-            s/from \"\(\.\+[^\"]*\)\"\([^w]\|$\)/from \"\1.ts\"\2/g;
-            s/from '"'"'\(\.\+[^'"'"']*\)'"'"'\([^w]\|$\)/from '"'"'\1.ts'"'"'\2/g;
-            s/\.json\.ts\" with { type: \"json\" }/.json\" with { type: \"json\" }/g;
+            s/from \"\(\.[^\"]*\.json\)\";$/from \"\1\" with { type: \"json\" };/g;
+            s/from '"'"'\(\.[^'"'"']*\.json\)'"'"';$/from '"'"'\1'"'"' with { type: \"json\" };/g;
+            s/\" with { type: \"json\" }\" with { type: \"json\" }/\" with { type: \"json\" }/g;
+            s/'"'"' with { type: \"json\" }'"'"' with { type: \"json\" }/'"'"' with { type: \"json\" }/g;
+            /\.json\" with { type: \"json\" };$/!s/from \"\(\.[^\"]*\)\";$/from \"\1.ts\";/g;
+            /\.json'"'"' with { type: \"json\" };$/!s/from '"'"'\(\.[^'"'"']*\)'"'"';$/from '"'"'\1.ts'"'"';/g;
             s/\.css\.ts/.css/g;
             s/\.svg\.ts/.svg/g;
             s/\.ts\.ts/.ts/g
