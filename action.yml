@@ -33,10 +33,13 @@ runs:
       run: |
         find src -name "*.ts" -type f -exec sh -c '
           sed -i.bak "
-            s/from \"\(\.\+[^\"]*\)\.json\"/from \"\1.json\" with { type: \"json\" }/g;
-            s/from '"'"'\(\.\+[^'"'"']*\)\.json'"'"'/from '"'"'\1.json'"'"' with { type: \"json\" }/g;
-            s/from \"\(\.\+[^\"]*\)\"/from \"\1.ts\"/g;
-            s/from '"'"'\(\.\+[^'"'"']*\)'"'"'/from '"'"'\1.ts'"'"'/g;
+            # Add .ts extension to relative imports (but not .json ones)
+            s/from \"\(\.\+[^\"]*\)\([^.]\)\"$/from \"\1\2.ts\"/g;
+            s/from '"'"'\(\.\+[^'"'"']*\)\([^.]\)'"'"'$/from '"'"'\1\2.ts'"'"'/g;
+            # Add with { type: \"json\" } to .json imports only if not already present
+            s/from \"\(\.\+[^\"]*\)\.json\"\([^w]\|$\)/from \"\1.json\" with { type: \"json\" }\2/g;
+            s/from '"'"'\(\.\+[^'"'"']*\)\.json'"'"'\([^w]\|$\)/from '"'"'\1.json'"'"' with { type: \"json\" }\2/g;
+            # Fix incorrectly added extensions
             s/\.json\.ts\" with { type: \"json\" }/.json\" with { type: \"json\" }/g;
             s/\.css\.ts/.css/g;
             s/\.svg\.ts/.svg/g;
